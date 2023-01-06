@@ -137,24 +137,19 @@ class LRUKReplacer {
   // Remove maybe_unused if you start using them.
 
   using access_info_t = struct {
-    size_t k_distance;
-    size_t earliest_access_timestamp;
+    size_t k_distance_;
+    size_t earliest_access_timestamp_;
   };
 
   class FrameInfo {
    public:
-
     explicit FrameInfo(size_t k) : k_(k) {}
 
-    FrameInfo(const FrameInfo & other) = default;
+    FrameInfo(const FrameInfo &other) = default;
 
-    inline auto IsEvictable() const -> bool {
-      return evictable_;
-    }
+    inline auto IsEvictable() const -> bool { return evictable_; }
 
-    inline void SetEvictable(bool evictable) {
-      evictable_ = evictable;
-    }
+    inline void SetEvictable(bool evictable) { evictable_ = evictable; }
 
     void RecordAccess(size_t timestamp) {
       access_timestamps_.push_back(timestamp);
@@ -165,11 +160,11 @@ class LRUKReplacer {
 
     auto GetAccessInfo() -> access_info_t {
       access_info_t access_info;
-      access_info.earliest_access_timestamp = access_timestamps_[0];
+      access_info.earliest_access_timestamp_ = access_timestamps_[0];
       if (access_timestamps_.size() < k_) {
-        access_info.k_distance = ULONG_MAX;
+        access_info.k_distance_ = ULONG_MAX;
       } else {
-        access_info.k_distance = access_timestamps_[k_-1] - access_timestamps_[0];
+        access_info.k_distance_ = access_timestamps_[k_ - 1] - access_timestamps_[0];
       }
 
       return access_info;

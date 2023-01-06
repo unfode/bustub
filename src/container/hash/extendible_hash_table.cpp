@@ -107,8 +107,7 @@ void ExtendibleHashTable<K, V>::InsertInternal(const K &key, const V &value) {
     dir_[original_dir_index + original_dir_size] = bucket1;
   } else {
     size_t original_local_depth_bit_mask = 1 << original_local_depth;
-    for (size_t i = (original_dir_index & (original_local_depth_bit_mask - 1));
-         i < dir_.size();
+    for (size_t i = (original_dir_index & (original_local_depth_bit_mask - 1)); i < dir_.size();
          i += original_local_depth_bit_mask) {
       if ((i & original_local_depth_bit_mask) == 0) {
         dir_[i] = bucket0;
@@ -149,13 +148,13 @@ auto ExtendibleHashTable<K, V>::Bucket::Find(const K &key, V &value) -> bool {
 
 template <typename K, typename V>
 auto ExtendibleHashTable<K, V>::Bucket::Remove(const K &key) -> bool {
-  for (auto &p : list_) {
+  return std::any_of(list_.begin(), list_.end(), [key, this](auto &p) {
     if (p.first == key) {
       list_.remove(p);
       return true;
     }
-  }
-  return false;
+    return false;
+  });
 }
 
 template <typename K, typename V>

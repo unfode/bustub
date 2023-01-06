@@ -19,7 +19,7 @@ LRUKReplacer::LRUKReplacer(size_t num_frames, size_t k) : replacer_size_(num_fra
 auto LRUKReplacer::Evict(frame_id_t *frame_id) -> bool {
   std::scoped_lock<std::mutex> lock(latch_);
   frame_id_t target_frame_id = -1;
-  for (auto & iter : map_) {
+  for (auto &iter : map_) {
     if (iter.second.IsEvictable()) {
       target_frame_id = iter.first;
       break;
@@ -32,15 +32,15 @@ auto LRUKReplacer::Evict(frame_id_t *frame_id) -> bool {
 
   access_info_t target_frame_access_info = map_.at(target_frame_id).GetAccessInfo();
 
-  for (auto & iter : map_) {
+  for (auto &iter : map_) {
     if (!iter.second.IsEvictable()) {
       continue;
     }
 
     access_info_t current_access_info = iter.second.GetAccessInfo();
-    if ((current_access_info.k_distance < target_frame_access_info.k_distance) ||
-        (current_access_info.k_distance == target_frame_access_info.k_distance &&
-         current_access_info.earliest_access_timestamp >= target_frame_access_info.earliest_access_timestamp)) {
+    if ((current_access_info.k_distance_ < target_frame_access_info.k_distance_) ||
+        (current_access_info.k_distance_ == target_frame_access_info.k_distance_ &&
+         current_access_info.earliest_access_timestamp_ >= target_frame_access_info.earliest_access_timestamp_)) {
       continue;
     }
 
@@ -106,7 +106,8 @@ auto LRUKReplacer::Size() -> size_t {
 }
 
 void LRUKReplacer::CheckFrameId(frame_id_t frame_id) {
-  BUSTUB_ASSERT(frame_id >= 0 && (size_t) frame_id <= replacer_size_, "frame id is invalid (ie. larger than replacer_size_)");
+  BUSTUB_ASSERT(frame_id >= 0 && (size_t)frame_id <= replacer_size_,
+                "frame id is invalid (ie. larger than replacer_size_)");
 }
 
 }  // namespace bustub

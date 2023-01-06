@@ -31,9 +31,9 @@ BufferPoolManagerInstance::BufferPoolManagerInstance(size_t pool_size, DiskManag
   }
 
   // TODO(students): remove this line after you have implemented the buffer pool manager
-//  throw NotImplementedException(
-//      "BufferPoolManager is not implemented yet. If you have finished implementing BPM, please remove the throw "
-//      "exception line in `buffer_pool_manager_instance.cpp`.");
+  //  throw NotImplementedException(
+  //      "BufferPoolManager is not implemented yet. If you have finished implementing BPM, please remove the throw "
+  //      "exception line in `buffer_pool_manager_instance.cpp`.");
 }
 
 BufferPoolManagerInstance::~BufferPoolManagerInstance() {
@@ -42,7 +42,7 @@ BufferPoolManagerInstance::~BufferPoolManagerInstance() {
   delete replacer_;
 }
 
-//auto BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) -> Page * {
+// auto BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) -> Page * {
 //  frame_id_t target_frame_id;
 //  if (!free_list_.empty()) {
 //    target_frame_id = free_list_.front();
@@ -103,7 +103,7 @@ auto BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) -> Page * {
   return &pages_[target_frame_id];
 }
 
-//auto BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) -> Page * {
+// auto BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) -> Page * {
 //  frame_id_t target_frame_id;
 //
 //  if (page_table_->Find(page_id, target_frame_id)) {
@@ -253,7 +253,6 @@ auto BufferPoolManagerInstance::DeletePgImp(page_id_t page_id) -> bool {
   return true;
 }
 
-
 void BufferPoolManagerInstance::EvictPg(frame_id_t frame_id) {
   if (pages_[frame_id].IsDirty()) {
     disk_manager_->WritePage(pages_[frame_id].GetPageId(), pages_[frame_id].GetData());
@@ -270,6 +269,5 @@ void BufferPoolManagerInstance::EvictPg(frame_id_t frame_id) {
 }
 
 auto BufferPoolManagerInstance::AllocatePage() -> page_id_t { return next_page_id_++; }
-
 
 }  // namespace bustub
