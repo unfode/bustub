@@ -162,7 +162,7 @@ class LRUKReplacer {
       access_info_t access_info;
       access_info.earliest_access_timestamp_ = access_timestamps_[0];
       if (access_timestamps_.size() < k_) {
-        access_info.k_distance_ = ULONG_MAX;
+        access_info.k_distance_ = BUSTUB_TIMESTAMP_MAX;
       } else {
         access_info.k_distance_ = access_timestamps_[k_ - 1] - access_timestamps_[0];
       }
