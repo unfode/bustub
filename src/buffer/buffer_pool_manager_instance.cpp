@@ -42,36 +42,100 @@ BufferPoolManagerInstance::~BufferPoolManagerInstance() {
   delete replacer_;
 }
 
+//auto BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) -> Page * {
+//  frame_id_t target_frame_id;
+//  if (!free_list_.empty()) {
+//    target_frame_id = free_list_.front();
+//    free_list_.pop_front();
+//  } else {
+//    if (!replacer_->Evict(&target_frame_id)) {
+//      page_id = nullptr;
+//      return nullptr;
+//    }
+//  }
+//
+//  if (pages_[target_frame_id].IsDirty()) {
+//    disk_manager_->WritePage(pages_[target_frame_id].GetPageId(), pages_[target_frame_id].GetData());
+//  }
+//
+//  page_table_->Remove(pages_[target_frame_id].GetPageId());
+//
+//  pages_[target_frame_id].ResetMemory();
+//  pages_[target_frame_id].page_id_ = AllocatePage();
+//  pages_[target_frame_id].pin_count_ = 1;
+//
+//  replacer_->RecordAccess(target_frame_id);
+//  replacer_->SetEvictable(target_frame_id, false);
+//
+//  page_table_->Insert(pages_[target_frame_id].page_id_, target_frame_id);
+//
+//  *page_id = pages_[target_frame_id].GetPageId();
+//  return &pages_[target_frame_id];
+//}
+
 auto BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) -> Page * {
   frame_id_t target_frame_id;
-  if (!free_list_.empty()) {
-    target_frame_id = free_list_.front();
-    free_list_.pop_front();
-  } else {
+
+  // If there is no free page, evict one page to get a free page
+  if (free_list_.empty()) {
     if (!replacer_->Evict(&target_frame_id)) {
       page_id = nullptr;
       return nullptr;
     }
+
+    EvictPg(target_frame_id);
   }
 
-  if (pages_[target_frame_id].IsDirty()) {
-    disk_manager_->WritePage(pages_[target_frame_id].GetPageId(), pages_[target_frame_id].GetData());
-  }
+  target_frame_id = free_list_.front();
+  free_list_.pop_front();
 
-  page_table_->Remove(pages_[target_frame_id].GetPageId());
-
-  pages_[target_frame_id].ResetMemory();
   pages_[target_frame_id].page_id_ = AllocatePage();
   pages_[target_frame_id].pin_count_ = 1;
 
   replacer_->RecordAccess(target_frame_id);
   replacer_->SetEvictable(target_frame_id, false);
 
-  page_table_->Insert(pages_[target_frame_id].page_id_, target_frame_id);
+  page_table_->Insert(pages_[target_frame_id].GetPageId(), target_frame_id);
 
   *page_id = pages_[target_frame_id].GetPageId();
   return &pages_[target_frame_id];
 }
+
+//auto BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) -> Page * {
+//  frame_id_t target_frame_id;
+//
+//  if (page_table_->Find(page_id, target_frame_id)) {
+//    replacer_->RecordAccess(target_frame_id);
+//    return &pages_[target_frame_id];
+//  }
+//
+//  if (!free_list_.empty()) {
+//    target_frame_id = free_list_.front();
+//    free_list_.pop_front();
+//  } else {
+//    if (!replacer_->Evict(&target_frame_id)) {
+//      return nullptr;
+//    }
+//  }
+//
+//  if (pages_[target_frame_id].IsDirty()) {
+//    disk_manager_->WritePage(pages_[target_frame_id].GetPageId(), pages_[target_frame_id].GetData());
+//  }
+//
+//  page_table_->Remove(pages_[target_frame_id].GetPageId());
+//
+//  pages_[target_frame_id].ResetMemory();
+//  pages_[target_frame_id].page_id_ = page_id;
+//  pages_[target_frame_id].pin_count_ = 1;
+//
+//  page_table_->Insert(pages_[target_frame_id].page_id_, target_frame_id);
+//
+//  disk_manager_->ReadPage(pages_[target_frame_id].page_id_, pages_[target_frame_id].GetData());
+//  replacer_->RecordAccess(target_frame_id);
+//  replacer_->SetEvictable(target_frame_id, false);
+//
+//  return &pages_[target_frame_id];
+//}
 
 auto BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) -> Page * {
   frame_id_t target_frame_id;
@@ -81,30 +145,27 @@ auto BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) -> Page * {
     return &pages_[target_frame_id];
   }
 
-  if (!free_list_.empty()) {
-    target_frame_id = free_list_.front();
-    free_list_.pop_front();
-  } else {
+  // If there is no free page, evict one page to get a free page
+  if (free_list_.empty()) {
     if (!replacer_->Evict(&target_frame_id)) {
       return nullptr;
     }
+
+    EvictPg(target_frame_id);
   }
 
-  if (pages_[target_frame_id].IsDirty()) {
-    disk_manager_->WritePage(pages_[target_frame_id].GetPageId(), pages_[target_frame_id].GetData());
-  }
+  target_frame_id = free_list_.front();
+  free_list_.pop_front();
 
-  page_table_->Remove(pages_[target_frame_id].GetPageId());
-
-  pages_[target_frame_id].ResetMemory();
   pages_[target_frame_id].page_id_ = page_id;
   pages_[target_frame_id].pin_count_ = 1;
 
-  page_table_->Insert(pages_[target_frame_id].page_id_, target_frame_id);
+  page_table_->Insert(pages_[target_frame_id].GetPageId(), target_frame_id);
 
-  disk_manager_->ReadPage(pages_[target_frame_id].page_id_, pages_[target_frame_id].GetData());
   replacer_->RecordAccess(target_frame_id);
   replacer_->SetEvictable(target_frame_id, false);
+
+  disk_manager_->ReadPage(pages_[target_frame_id].GetPageId(), pages_[target_frame_id].GetData());
 
   return &pages_[target_frame_id];
 }
@@ -175,6 +236,22 @@ auto BufferPoolManagerInstance::DeletePgImp(page_id_t page_id) -> bool {
   return true;
 }
 
+void BufferPoolManagerInstance::EvictPg(frame_id_t frame_id) {
+  if (pages_[frame_id].IsDirty()) {
+    disk_manager_->WritePage(pages_[frame_id].GetPageId(), pages_[frame_id].GetData());
+  }
+
+  page_table_->Remove(pages_[frame_id].GetPageId());
+
+  free_list_.push_back(frame_id);
+
+  pages_[frame_id].ResetMemory();
+  pages_[frame_id].page_id_ = INVALID_PAGE_ID;
+  pages_[frame_id].pin_count_ = 0;
+  pages_[frame_id].is_dirty_ = false;
+}
+
 auto BufferPoolManagerInstance::AllocatePage() -> page_id_t { return next_page_id_++; }
+
 
 }  // namespace bustub
