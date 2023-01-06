@@ -140,7 +140,17 @@ class BufferPoolManagerInstance : public BufferPoolManager {
    */
   auto DeletePgImp(page_id_t page_id) -> bool override;
 
+  /**
+   * Reset a page in the buffer pool, and remove it from the page table. Must be called with the latch latched.
+   * @param frame_id index (in the array of pages) of the page to be evicted
+   */
   void EvictPg(frame_id_t frame_id);
+
+  /**
+   * Write the data of a page to the disk. Must be called with the latch latched.
+   * @param frame_id index (in the array of pages) of the page to be flushed
+   */
+  void FlushPgImpInternal(frame_id_t frame_id);
 
   /** Number of pages in the buffer pool. */
   const size_t pool_size_;
